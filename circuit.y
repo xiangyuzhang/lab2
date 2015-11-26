@@ -35,6 +35,8 @@ struct Gate_class					//here I declare the gate class
 	int indegree;   
 	int Fan_out_number = 0;
 	int Fan_in_number = 0;
+	int level = -1;   //means the level of this gate, level = the max level of input + 1
+	int level_count = 0;  //menas the number of inputs that have been counted, if level_count == Fan_in_number, then current number of level will be the final number of level
 	EdgeNode *first[20];
 }; 
 int gate_counter = -1;
@@ -130,7 +132,8 @@ struct Graph
 				graph->vertexList[i].Source_gate_name = gates[i].Source_gate_name;
 				graph->vertexList[i].Fan_out_number = gates[i].Fan_out_number;
 				graph->vertexList[i].Fan_in_number = gates[i].Fan_in_number;
-
+				graph->vertexList[i].level = -1;
+				graph->vertexList[i].level_count = 0;
 				if(graph->vertexList[i].Gate_type == "from")
 				{
 				graph->vertexList[i].Fan_out_number = 1;
@@ -445,6 +448,28 @@ struct Graph
 		}
 	}
 
+	void init_levelization(Graph *graph, int size)
+	{
+		for(int i = 0; i <= size; i++)
+		{
+			if(graph->vertexList[i].Gate_type == "inpt")   //initialize the inputs
+			{
+				graph->vertexList[i].level = 1;		//initialize the number of level
+				graph->vertexList[i].level_count = 0;		//make the number of level_count == Fan_in_number 
+				cout << graph->vertexList[i].Gate_name<< "is been initalized, level ==" << graph->vertexList[i].level << endl;
+			}
+
+		}
+
+	}
+
+	void levelization()
+	{
+
+	}
+
+
+
 	int main(void){
 
 		yyparse();
@@ -601,5 +626,10 @@ struct Graph
 		//BFS(graph);
 		Generate_result(graph, gate_counter);
 		Fault_generation(graph, gate_counter);
+
+		init_levelization(graph, gate_counter + 1);
+		cout << "gate_counter ==" << gate_counter <<endl;
 		return 0;
+
+
 	}
