@@ -10,6 +10,7 @@
 #include <vector>
 #include <cctype>
 #include <fstream>
+#include <queue>
 extern "C" 
 using namespace std;
 void yyerror(char *);
@@ -129,9 +130,16 @@ struct Graph
 			    graph->vertexList[i].Gate_name = gates[i].Gate_name;
 				graph->vertexList[i].Gate_type = gates[i].Gate_type;
 				graph->vertexList[i].Gate_index = gates[i].Gate_index;
-				graph->vertexList[i].Source_gate_name = gates[i].Source_gate_name;
 				graph->vertexList[i].Fan_out_number = gates[i].Fan_out_number;
-				graph->vertexList[i].Fan_in_number = gates[i].Fan_in_number;
+				graph->vertexList[i].Source_gate_name = gates[i].Source_gate_name;
+				if(graph->vertexList[i].Gate_type == "from")
+				{
+					graph->vertexList[i].Fan_in_number = 1;
+				}
+				else
+				{
+					graph->vertexList[i].Fan_in_number = gates[i].Fan_in_number;
+				}
 				graph->vertexList[i].level = -1;
 				graph->vertexList[i].level_count = 0;
 				if(graph->vertexList[i].Gate_type == "from")
@@ -454,21 +462,33 @@ struct Graph
 		{
 			if(graph->vertexList[i].Gate_type == "inpt")   //initialize the inputs
 			{
-				graph->vertexList[i].level = 1;		//initialize the number of level
+				graph->vertexList[i].level = 0;		//initialize the number of level
 				graph->vertexList[i].level_count = 0;		//make the number of level_count == Fan_in_number 
+				EdgeNode *p = graph->vertexList[i].first[0];
+				graph->vertexList[p->vtxNO].level = 1;
+				graph->vertexList[p->vtxNO].level_count++;
 				cout << graph->vertexList[i].Gate_name<< "is been initalized, level ==" << graph->vertexList[i].level << endl;
+				cout << "and its next gate" << graph->vertexList[p->vtxNO].Gate_name<<"now has level_count = " << graph->vertexList[p->vtxNO].level_count << endl;
 			}
 
 		}
 
 	}
-
-	void levelization()
+/*
+	void levelization(Graph *graph, int size)
 	{
+		queue<Gate_class> gate_queue;
+		for(int i = 0; i <= size; i++)
+		{
+			if(graph->vertexList[i].Gate_type == "inpt") 
+			{
+				gate_queue.push(graph->vertexList[graph->vertexList[i].first->vtxNO]);
+			}
+		}		
 
 	}
 
-
+*/
 
 	int main(void){
 
@@ -627,8 +647,8 @@ struct Graph
 		Generate_result(graph, gate_counter);
 		Fault_generation(graph, gate_counter);
 
-		init_levelization(graph, gate_counter + 1);
-		cout << "gate_counter ==" << gate_counter <<endl;
+		init_levelization(graph, gate_counter);
+
 		return 0;
 
 
