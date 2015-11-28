@@ -11,6 +11,7 @@
 #include <cctype>
 #include <fstream>
 #include <queue>
+#include <thread>
 extern "C" 
 using namespace std;
 void yyerror(char *);
@@ -38,6 +39,7 @@ struct Gate_class					//here I declare the gate class
 	int Fan_in_number = 0;
 	int level = -1;   //means the level of this gate, level = the max level of input + 1
 	int level_count = 0;  //menas the number of inputs that have been counted, if level_count == Fan_in_number, then current number of level will be the final number of level
+	bool inqueue = false; //check whether the object is now in gate_queue;
 	EdgeNode *first[20];
 }; 
 int gate_counter = -1;
@@ -464,31 +466,197 @@ struct Graph
 			{
 				graph->vertexList[i].level = 0;		//initialize the number of level
 				graph->vertexList[i].level_count = 0;		//make the number of level_count == Fan_in_number 
-				EdgeNode *p = graph->vertexList[i].first[0];
-				graph->vertexList[p->vtxNO].level = 1;
-				graph->vertexList[p->vtxNO].level_count++;
-				cout << graph->vertexList[i].Gate_name<< "is been initalized, level ==" << graph->vertexList[i].level << endl;
-				cout << "and its next gate" << graph->vertexList[p->vtxNO].Gate_name<<"now has level_count = " << graph->vertexList[p->vtxNO].level_count << endl;
+				for (int j = 0; j <= graph->vertexList[i].Fan_out_number - 1; j++)
+				{
+					EdgeNode *p = graph->vertexList[i].first[j];
+					graph->vertexList[p->vtxNO].level = 1;
+					graph->vertexList[p->vtxNO].level_count++;
+					cout << graph->vertexList[i].Gate_name<< "is been initalized, level ==" << graph->vertexList[i].level << endl;
+					cout << "and its next gate" << graph->vertexList[p->vtxNO].Gate_name<<" now has level_count = " << graph->vertexList[p->vtxNO].level_count << endl;
+				}
 			}
 
 		}
 
 	}
-/*
+
 	void levelization(Graph *graph, int size)
 	{
-		queue<Gate_class> gate_queue;
+		
+		Gate_class temp;
+		vector<Gate_class> gate_vector;
+		bool check;
+		bool in_vector = false;
+		int vector_index = 0;
 		for(int i = 0; i <= size; i++)
 		{
 			if(graph->vertexList[i].Gate_type == "inpt") 
 			{
-				gate_queue.push(graph->vertexList[graph->vertexList[i].first->vtxNO]);
+				for (int j = 0; j <= graph->vertexList[i].Fan_out_number - 1; j++)
+				{
+					EdgeNode *p = graph->vertexList[i].first[j];
+					gate_vector.insert(gate_vector.begin(),graph->vertexList[p->vtxNO]);
+					vector_index ++;					
+				}
+				
+			}
+		}
+//used to check the result of initinalization
+		for(int i = 0; i <= gate_vector.size()-1; i++)
+		{
+			cout << gate_vector.at(i).Gate_name << endl;
+		}
+
+		while(gate_vector.empty() == false)
+		{
+			temp = gate_vector.back();
+			gate_vector.pop_back();
+			cout << "pop " << temp.Gate_name << " " << endl;
+			if(temp.level_count == temp.Fan_in_number) //表示这个gate已经被label
+			{
+				cout << temp.Gate_name << " is labeled " << endl;
+				for(int j = 0; j <= temp.Fan_out_number - 1; j++) //这个gate的所有的fanout中
+				{
+
+					EdgeNode *p = temp.first[j];
+					for (int k = 0; k <= gate_vector.size() - 1; k++)
+					{
+
+						if(gate_vector.at(k).Gate_name == graph->vertexList[p->vtxNO].Gate_name) //如果这个gate的下一个gate在gate——vector中
+						{
+							
+							if(gate_vector.at(k).level - 1 <= temp.level)	//赋值给level
+							{
+								gate_vector.at(k).level = temp.level + 1;
+							}
+							gate_vector.at(k).level_count++;	//使下一个gate的level_counter++
+							
+							for (int l = 0; l<=gate_vector.size() - 1; l++)		//如果下一个gate不在vector里面
+							{
+								if(gate_vector.at(k).Gate_name == gate_vector.at(l).Gate_name)
+								{
+									check = false;   //下一个gate在vector里面
+									break;
+								}
+								else
+								{
+									check = true;	//下一个gate不在vector里面
+								}
+							}
+							if(check)
+							{
+								gate_vector.insert(gate_vector.begin(), gate_vector.at(k));	//那么久把下一个gate放进vector开始的地方
+								cout << " push1 " << gate_vector.at(k).Gate_name << endl;	
+								//cout << "here" << endl;							
+							}
+							
+	
+							
+									
+							for(int it = 0; it <= gate_vector.size() - 1; it++)
+							{
+								cout << gate_vector.at(it).Gate_name << " with " << gate_vector.at(it).level_count;
+							}
+							cout << endl;
+							break;
+						}	
+							
+						
+					}
+					in_vector = false;
+					for (int k = 0; k <= gate_vector.size() - 1; k++)
+					{
+
+						
+						if(gate_vector.at(k).Gate_name == graph->vertexList[p->vtxNO].Gate_name)
+						{
+							in_vector = true;
+							break;
+						}	
+					}
+					if(in_vector == false)
+					{
+						//cout << temp.Gate_name << "next gate is not in vector" << endl;
+						graph->vertexList[p->vtxNO].level = temp.level + 1;
+						graph->vertexList[p->vtxNO].level_count++;
+						gate_vector.insert(gate_vector.begin(), graph->vertexList[p->vtxNO]);
+						cout << "push2 " << graph->vertexList[p->vtxNO].Gate_name << endl;
+						//cout << graph->vertexList[p->vtxNO].Gate_name << " has level count = " << graph->vertexList[p->vtxNO].level_count << " and level " << graph->vertexList[p->vtxNO].level << endl;
+					}
+				}
+			}
+			else
+			{
+				cout << "push " << temp.Gate_name << " " << endl;
+				gate_vector.insert(gate_vector.begin(), temp);
 			}
 		}		
 
-	}
+/*
+
+		for(int i = 0; i <= size; i++)
+		{
+
+			cout << graph->vertexList[i].Gate_name <<" has number of fanin = " << graph->vertexList[i].Fan_in_number << endl;
+			
+		}
+		while(gate_queue.empty() == false)
+		{
+			temp = gate_queue.front();
+			gate_queue.pop();
+			temp.inqueue = false;
+			//cout << " pop out " << temp.Gate_name<<endl;
+			//cout << temp.Gate_name << " " << temp.level_count <<"?"<< temp.Fan_in_number << endl;
+			if(temp.level_count == temp.Fan_in_number)
+			{
+				//cout << temp.Gate_name << " is labeled " <<endl;
+				cout << temp.Gate_name <<endl;
+				for (int j = 0; j <= temp.Fan_out_number - 1; j++)
+				{
+					EdgeNode *p = temp.first[j];
+					if(graph->vertexList[p->vtxNO].level -1 <= temp.level)
+					{
+						graph->vertexList[p->vtxNO].level = temp.level + 1;
+					}
+					graph->vertexList[p->vtxNO].level_count++; //此处，虽然下一个gate的level_count增加，但是并不能增加queue里面的元素的level_count的值，元素在不用的地方
+					cout << " " << graph->vertexList[p->vtxNO].Gate_name << " has level: " << graph->vertexList[p->vtxNO].level << " and count: "<< graph->vertexList[p->vtxNO].level_count<<endl;
+					if(graph->vertexList[p->vtxNO].level_count == graph->vertexList[p->vtxNO].Fan_in_number)
+					{
+						cout << graph->vertexList[p->vtxNO].Gate_name << " is ready" << endl;
+					}
+					//cout << "size = " << gate_queue.size() << " " << gate_queue.front().Gate_name << " and back:" << gate_queue.back().Gate_name<<endl;
+					if(graph->vertexList[p->vtxNO].inqueue == false)
+					{
+						gate_queue.push(graph->vertexList[p->vtxNO]);
+						graph->vertexList[p->vtxNO].inqueue = true;
+					}
+					
+					//cout << " the next is: " << graph->vertexList[p->vtxNO].Gate_name<<endl;
+
+				}
+
+				
+			}
+			else if(temp.level_count << temp.Fan_in_number)
+			{
+				//out << "push back " << temp.Gate_name << endl;
+				temp.inqueue = true;
+				gate_queue.push(temp);
+
+			}
+
+		}
 
 */
+//		for(int i = 0; i <= size; i++)
+//		{
+//			cout << graph->vertexList[i].Gate_name << " has level == " << graph->vertexList[i].level; 
+//		}	
+	
+
+	}
+
+
 
 	int main(void){
 
@@ -648,6 +816,11 @@ struct Graph
 		Fault_generation(graph, gate_counter);
 
 		init_levelization(graph, gate_counter);
+		levelization(graph, gate_counter);
+		for(int i = 0; i <= gate_counter; i++)
+		{
+			cout << graph->vertexList[i].Gate_name << " has level = " << graph->vertexList[i].level << endl;
+		}
 
 		return 0;
 
