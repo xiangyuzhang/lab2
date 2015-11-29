@@ -42,6 +42,7 @@ struct Gate_class					//here I declare the gate class
 	int level_count = 0;  //menas the number of inputs that have been counted, if level_count == Fan_in_number, then current number of level will be the final number of level
 	bool inqueue = false; //check whether the object is now in gate_queue;
 	int value = 0;
+	vector<int> input_value;
 	EdgeNode *first[20];
 }; 
 int gate_counter = -1;
@@ -571,6 +572,7 @@ struct Graph
 						graph->vertexList[p->vtxNO].level_count++;
 						gate_vector.insert(gate_vector.begin(), graph->vertexList[p->vtxNO]);
 					}
+					//in_vector = false;  新加的，不知道是否正确，但是如果出错，先考虑这里
 				}
 			}
 			else
@@ -598,6 +600,113 @@ struct Graph
 			vect.push_back(random_generator());
 		}
 
+	}
+
+	void process_fault_free(Graph *graph, int size, vector<int> &test_pattern)
+	{
+		int test_pattern_index = 0;
+		
+		int temp = 0;
+		int max_level = -1;
+		//initialize input
+		for(int i = 0; i<=size; i++)
+		{
+			if(graph->vertexList[i].Gate_type == "inpt")
+			{
+				graph->vertexList[i].value = test_pattern.at(test_pattern_index);
+				for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
+				{
+					EdgeNode *p = graph->vertexList[i].first[it];
+
+					graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[i].value);
+					
+					cout << graph->vertexList[p->vtxNO].Gate_name << " has input value" << graph->vertexList[p->vtxNO].input_value.at(0) <<endl;
+
+				}
+				test_pattern_index++;
+			}
+		}
+		//process
+
+		for(int k = 0; k <= size; k++)
+		{
+			if(graph->vertexList[k].level > max_level)
+			{
+				max_level = graph->vertexList[k].level;
+			}
+		}
+		cout << "Max level is: " << max_level <<endl;
+		for(int level = 1; level <= max_level; level++)
+		{
+			for(int j = 0; j<=size; j++)
+			{
+				if(graph->vertexList[j].level == level)
+				{
+				cout << "here" <<endl;	
+					if( graph->vertexList[j].Gate_type == "from")
+					{
+						
+
+						EdgeNode *p = graph->vertexList[j].first[0];
+						graph->vertexList[j].value = graph->vertexList[j].input_value.at(0);
+						graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
+						cout << " FAN: " << graph->vertexList[j].Gate_name << " has value =" << graph->vertexList[j].value << endl;
+						cout << "------- and it has next gate: " << graph->vertexList[p->vtxNO].Gate_name << " with input_value = :";
+						for (int fan_index = 0; fan_index <= (graph->vertexList[p->vtxNO].input_value.size() - 1); fan_index++)
+						{
+							cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
+						}
+						cout << endl;
+					}
+					else if(graph->vertexList[j].Gate_type == "and")
+					{
+						temp = graph->vertexList[j].input_value[0];
+						for(int input_index = 1; input_index <= graph->vertexList[j].Fan_in_number - 1; input_index++)
+						{
+							temp = temp & graph->vertexList[j].input_value[input_index];
+						}
+						graph->vertexList[j].value = temp;
+						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
+						{
+							EdgeNode *p = graph->vertexList[j].first[it];
+							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
+						}
+					}
+					else if(graph->vertexList[j].Gate_type == "nand")
+					{
+						temp = graph->vertexList[j].input_value[0];
+						for(int input_index = 1; input_index <= graph->vertexList[j].Fan_in_number - 1; input_index++)
+						{
+							temp = temp & graph->vertexList[j].input_value[input_index];
+						}
+						graph->vertexList[j].value = ~temp;
+						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
+						{
+							EdgeNode *p = graph->vertexList[j].first[it];
+							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
+						}
+					}
+					
+				}
+
+			}
+		}
+	}
+	
+
+	void result_generator(Graph *graph, int size)
+	{
+		bool is_output = true;
+		for (int i = 0; i <= size; i++)
+		{
+
+			for(int j = 0; j <= graph->vertexList[i].Fan_out_number - 1; j++)
+			{
+
+				cout << graph->vertexList[i].Gate_name << " has value " << graph->vertexList[i].value << endl; 
+				
+			}
+		}
 	}
 
 
@@ -774,11 +883,17 @@ struct Graph
 				Num_of_inpt++;
 			}
 		}
+		
 		test_pattern_generator(test_pattern, Num_of_inpt);
+		/*
 		for (int i = 0; i<=test_pattern.size() - 1; i++)
 		{
 			cout << test_pattern.at(i) <<endl;
 		}
+		*/
+
+		process_fault_free(graph, gate_counter, test_pattern);
+		result_generator(graph, gate_counter);
 
 		return 0;
 
