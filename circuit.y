@@ -63,8 +63,8 @@ vector<Fault_class> Fault_vector;
 vector<int> test_pattern;
 int tempupdater = 0;
 vector<Gate_class> Output_vector;
-vector<int> Fault_free_gate_container;
-vector<int> Fault_gate_container; 
+vector<Gate_class> Fault_free_gate_container;
+vector<Gate_class> Fault_gate_container; 
 
 
 struct Graph
@@ -614,7 +614,7 @@ struct Graph
 			unsigned int temp = random_generator();
 	//		cout << "here" <<endl;
 			vect.push_back(temp);
-			cout << " test pattern: " << temp <<endl;
+			//cout << " test pattern: " << temp <<endl;
 		}
 
 	}
@@ -622,14 +622,17 @@ struct Graph
 	void process_fault_free(Graph *graph, int size, vector<int> &test_pattern)
 	{
 		int test_pattern_index = 0;
-		
 		int temp = 0;
 		int max_level = -1;
 		//initialize input
+		cout << "Input Pattern:" <<endl;
 		for(int i = 0; i<=size; i++)
 		{
 			if(graph->vertexList[i].Gate_type == "inpt")
 			{
+				std::bitset<32> binary (test_pattern.at(test_pattern_index));
+				cout << "<" << graph->vertexList[i].Gate_index << ">";
+				cout << "[" << binary <<"]," <<endl;
 				graph->vertexList[i].value = test_pattern.at(test_pattern_index);
 				for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
 				{
@@ -953,7 +956,7 @@ struct Graph
 		}
 	}
 
-	void output_finder(Graph *graph, int size, vector<Gate_class> &Output_vector)
+	void output_finder(Graph *graph, int size, vector<Gate_class> &Output_vector)  //return Output_vector with output gate as elements
 	{
 		for(int i = 0; i<=size; i++)
 		{
@@ -964,16 +967,17 @@ struct Graph
 		}
 	}
 
-	bool is_identical(vector<int> &Fault_free_gate_container, vector<int> &Fault_gate_container, vector<Gate_class> &Output_vector)
+	bool is_identical(vector<Gate_class> &Fault_free_gate_container, vector<Gate_class> &Fault_gate_container, vector<Gate_class> &Output_vector)
 	{	
 		bool check = true;
 		int size = Output_vector.size();
 		for(int i = 0; i <= size - 1; i++)
 		{
-			if(Fault_gate_container.at(i) != Fault_free_gate_container.at(i))
+			//cout << Fault_gate_container.at(i).Gate_name << "=" << Fault_gate_container.at(i).value<<" VS " << Fault_free_gate_container.at(i).Gate_name <<"=" << Fault_free_gate_container.at(i).value<<endl;
+			if(Fault_gate_container.at(i).value != Fault_free_gate_container.at(i).value)
 			{
 				check = false;
-				break;
+				
 			}
 		}
 
@@ -981,6 +985,38 @@ struct Graph
 
 	}
 
+	void Following_faults_are_detected_at (Graph *graph, int size, vector<Gate_class> &Fault_free_gate_container, vector<Gate_class> &Fault_gate_container, vector<Gate_class> &Output_vector, Fault_class &Fault_element, bool is_identical)
+	{
+		//cout <<"here"<<endl;
+		if(is_identical == false)
+		{
+
+			for(int i = 0; i <= Output_vector.size() - 1; i++)
+			{
+				if(Fault_free_gate_container.at(i).value != Fault_gate_container.at(i).value)
+				{
+					cout << "<" << Output_vector.at(i).Gate_index << ">";
+					for(int j = 0; j <= size; j++)
+					{
+						if(graph->vertexList[j].Gate_name == Fault_element.Gate_name)
+						{
+						cout << "<" << graph->vertexList[j].Gate_index << ">";	
+						break;						
+						}
+					}
+					if(Fault_element.Fault == "SA1")
+					{
+						cout << "SA<1>" <<endl;
+					}
+					else if(Fault_element.Fault == "SA0")
+					{
+						cout << "SA<0>" <<endl;
+					}
+					break;
+				}
+			}
+		}
+	}
 	int main(void){
 
 		int Num_of_inpt = 0;
@@ -1116,65 +1152,38 @@ struct Graph
 		output_finder(graph, gate_counter, Output_vector);		//找到outputnode，然后将他们复制放进事先声明的Output_finder里面，此时output_Vector里面的value是fault free时候的值
 		for(int i = 0; i<= Output_vector.size() - 1; i++)
 		{
-			Fault_free_gate_container.push_back(Output_vector.at(i).value);
-			cout << Output_vector.at(i).Gate_name << " when fault free is: " << Output_vector.at(i).value <<endl;
+			Fault_free_gate_container.push_back(Output_vector.at(i));
+			//cout << Output_vector.at(i).Gate_name << " when fault free is: " << Output_vector.at(i).value <<endl;
 		}
 		//result_generator(graph, gate_counter);
 		Output_vector.clear(); //清空Output_vector，以便放入新的fault_gate的output_vector
 		fault_collector(graph, gate_counter, Fault_vector);  //搜集所有的fault gate和他们的fault类型
-
+		cout << "Following faults are detected at:" << endl;
 		for(int i = 0; i <= Fault_vector.size() - 1; i++)
 		{
-			cout <<"................................................................." <<endl;
-			cout << "Fault: " << Fault_vector[i].Gate_name << " " << Fault_vector[i].Fault << " is processing..." <<endl;
+			//cout <<"................................................................." <<endl;
+			//cout << "Fault: " << Fault_vector[i].Gate_name << " " << Fault_vector[i].Fault << " is processing..." <<endl;
 			process_fault(graph, gate_counter, test_pattern, Fault_vector[i]);
 			//result_generator(graph, gate_counter);
 			Output_vector.clear();
 			output_finder(graph, gate_counter, Output_vector);
 			for(int i = 0; i<= Output_vector.size() - 1; i++)
 			{
-				Fault_gate_container.push_back(Output_vector.at(i).value);
-				cout << Output_vector.at(i).Gate_name << " when fault is: " << Output_vector.at(i).value <<endl;
+				Fault_gate_container.push_back(Output_vector.at(i));
+				//cout << Output_vector.at(i).Gate_name << " when fault is: " << Output_vector.at(i).value <<endl;
 			}
-			if(is_identical(Fault_free_gate_container, Fault_gate_container, Output_vector) == false)
+/*			if(is_identical(Fault_free_gate_container, Fault_gate_container, Output_vector) == false)
 			{
 				cout << "Found!!!" <<endl;
-			}
+			}*/
+
+			Following_faults_are_detected_at(graph, gate_counter, Fault_free_gate_container, Fault_gate_container, Output_vector, Fault_vector[i], is_identical(Fault_free_gate_container, Fault_gate_container, Output_vector));
+			Fault_gate_container.clear();
 
 		}
 
 
-		//result_generator(graph, gate_counter);
-//		cout << "fault is: " << Fault_vector[0].Gate_name << " " << Fault_vector[2].Fault <<endl;
-//		output_finder(graph, gate_counter, Output_vector);
-//		result_generator(graph, gate_counter);
-		/*
-		for(int i = 0; i <= Fault_vector.size() - 1; i++)
-		{
-			//cout << "Fault is:" << Fault_vector.at(i).Gate_name << " " << Fault_vector.at(i).Fault << " ";
-			process_fault(graph, gate_counter, test_pattern, Fault_vector[i]);
-			output_finder(graph, gate_counter, Output_vector);
-			for(int i = 0; i<= Output_vector.size() - 1; i++)
-			{
-				Fault_gate_container.push_back(Output_vector.at(i).value);
-				cout << Output_vector.at(i).Gate_name << " when fault inserted is: " << Output_vector.at(i).value <<endl;
-			}
 
-			if(is_identical(Fault_free_gate_container, Fault_gate_container, Output_vector) == false)
-			{
-				cout << "Found!!!";
-			}
-			Fault_gate_container.empty();  //清空，以便存放下一个fault_gate (从1053行开始)
-			Output_vector.empty();		//清空，以便存放下一个Output_vector（从output_finder来）
-			cout << endl;
-
-		}*/
-
-/*		for (int i = 0; i <= Fault_vector.size() - 1; i++)
-		{
-			cout << Fault_vector.at(i).Gate_name << " " << Fault_vector.at(i).Fault << endl;
-		}
-*/
 
 
 
