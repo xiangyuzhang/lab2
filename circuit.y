@@ -53,8 +53,8 @@ struct Gate_class					//here I declare the gate class
 	int level = -1;   //means the level of this gate, level = the max level of input + 1
 	int level_count = 0;  //menas the number of inputs that have been counted, if level_count == Fan_in_number, then current number of level will be the final number of level
 	bool inqueue = false; //check whether the object is now in gate_queue;
-	int value = 0;
-	vector<int> input_value;
+	unsigned int value = 0;
+	vector<unsigned int> input_value;
 	EdgeNode *first[20];
 }; 
 int gate_counter = -1;
@@ -140,7 +140,7 @@ struct Graph
 			graph->vertexList = &gates[n];				//pointer:vertexList points to the address:start of set of nodes！！！！！！！！！！！！！！！！！！！！！！！！！！
 			graph->vertexes = n;			// number of vertexes is n+1
 			graph->edges = 0;
-			cout << n;
+			//cout << n;
 			for (int i = 0; i <= n; i++)
 			{
 	            
@@ -201,7 +201,7 @@ struct Graph
 				EdgeNode *p = graph->vertexList[i].first[j];
 				if (p != NULL)
 				{
-					cout << "    gatename = " << gates[i].Gate_name << " , to " << graph->vertexList[p->vtxNO].Gate_name << endl;
+					//cout << "    gatename = " << gates[i].Gate_name << " , to " << graph->vertexList[p->vtxNO].Gate_name << endl;
 				}
 			}
 
@@ -222,7 +222,7 @@ struct Graph
 			cout << "\n";
 		}
 		*/
-		cout << "\n";
+		//cout << "\n";
 	}
 
 	void AddEdge(Graph *graph, int v1, int v2)   //here, the v1 and v2 is the index of a gate, rather a gate_index!!! v1是source
@@ -600,7 +600,7 @@ struct Graph
 
 	int random_generator()
 	{
-		int ran_num;
+		unsigned int ran_num;
 		
 		ran_num = rand()%4294967295 + 1;
 	//	cout <<"num:" << ran_num << endl;
@@ -611,7 +611,7 @@ struct Graph
 	{
 		for(int i = 0;i<=Num_inpt - 1;i++)
 		{
-			long temp = random_generator();
+			unsigned int temp = random_generator();
 	//		cout << "here" <<endl;
 			vect.push_back(temp);
 			cout << " test pattern: " << temp <<endl;
@@ -673,7 +673,7 @@ struct Graph
 						{
 //							cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
 						}
-						cout << endl;
+						//cout << endl;
 					}
 					else if(graph->vertexList[j].Gate_type == "and")
 					{
@@ -710,73 +710,75 @@ struct Graph
 		}
 	}
 
+	void input_checker (Graph *graph, int size)
+	{
+		for(int i = 0; i<= size; i++)
+		{
+//			for(int j = 0; j <= graph->vertexList[i].input_value.size() -1; j++)
+//			{
+//			cout << graph->vertexList[i].Gate_name << "has input value: " << graph->vertexList[i].input_value.at(j) << " " ;
+//			}
+//			cout << endl;
+			cout <<  graph->vertexList[i].Gate_name << " has input value size = " << graph->vertexList[i].input_value.size() << endl;
+		}
+	}
+
+	void empty_graph_input(Graph *graph, int size)
+	{
+		for(int i = 0; i <= size; i++)
+		{
+			graph->vertexList[i].input_value.clear();
+		}
+	}
+
 	void process_fault(Graph *graph, int size, vector<int> &test_pattern, Fault_class Fault_element)
 	{
-		cout <<"................................................................." <<endl;
-		cout << "Fault is: " << Fault_element.Gate_name << " " << Fault_element.Fault << " " <<endl;
+//		cout << "Fault is: " << Fault_element.Gate_name << " " << Fault_element.Fault << " " <<endl;
 		int test_pattern_index = 0;
 		
 		int temp = 0;
 		int max_level = -1;
 		//initialize input
+		empty_graph_input(graph, size);
+		//input_checker(graph, size);
 		for(int i = 0; i<=size; i++)
 		{
 
 			if(graph->vertexList[i].Gate_type == "inpt")
 			{
-				graph->vertexList[i].value = test_pattern.at(test_pattern_index);
+				if(graph->vertexList[i].Gate_name == Fault_element.Gate_name)
+				{
+					if(Fault_element.Fault == "SA0")
+					{
+						graph->vertexList[i].value = 0;
+//						cout << "fault site: " << graph->vertexList[i].Gate_name << " has fault and value is: " << graph->vertexList[i].value <<endl;
+					}
+					else if(Fault_element.Fault == "SA1")
+					{
+						graph->vertexList[i].value = 4294967295;
+//						cout << "fault site: " << graph->vertexList[i].Gate_name << " has fault and value is: " << graph->vertexList[i].value <<endl;
+
+					}
+				}
+				else
+				{
+					graph->vertexList[i].value = test_pattern.at(test_pattern_index);
+				}
 				for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
 				{
 					EdgeNode *p = graph->vertexList[i].first[it];
-
 					graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[i].value);
-					
-					cout << graph->vertexList[p->vtxNO].Gate_name << " has input value " << graph->vertexList[p->vtxNO].input_value.at(0) <<endl;
-
+//					cout << graph->vertexList[p->vtxNO].Gate_name << " with source " << graph->vertexList[i].Gate_name << " has input "<< graph->vertexList[i].value<<endl;
 				}
 				test_pattern_index++;
-			}
-/*			if((graph->vertexList[i].Gate_type == "inpt"))
-			{
-				graph->vertexList[i].value = test_pattern.at(test_pattern_index);
-				cout << graph->vertexList[i].Gate_name << " has " << graph->vertexList[i].Fan_out_number << " fanout " <<endl;
-				for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
-				{
-					EdgeNode *p = graph->vertexList[i].first[it];
-					graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[i].value);
-					
-//					cout << graph->vertexList[p->vtxNO].Gate_name << " has input value" << graph->vertexList[p->vtxNO].input_value.at(0) <<endl;
-
-				}
-			}
-			else if((graph->vertexList[i].Gate_type == "inpt") && (graph->vertexList[i].Gate_name == Fault_element.Gate_name))
-			{
-				if(Fault_element.Fault == "SA1")
-				{
-					graph->vertexList[i].value = 4294967296;
-					for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
-					{
-					EdgeNode *p = graph->vertexList[i].first[it];
-					graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[i].value);
-					}
-
-				}
-				if(Fault_element.Fault == "SA0")
-				{
-					graph->vertexList[i].value = 0;
-					for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
-					{
-					EdgeNode *p = graph->vertexList[i].first[it];
-					graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[i].value);
-					}					
-				}
-
-			}*/
-				
-			
+			}			
 		}
+
+//		input_checker(graph, size);
+
+
 		//process
-/*
+
 		for(int k = 0; k <= size; k++)
 		{
 			if(graph->vertexList[k].level > max_level)
@@ -789,28 +791,29 @@ struct Graph
 		{
 			for(int j = 0; j<=size; j++)
 			{
+
 				if((graph->vertexList[j].level == level)&&(graph->vertexList[j].Gate_name != Fault_element.Gate_name))
 				{
 
-					cout << graph->vertexList[j].Gate_name << " is under calculating..." << " with size: " << graph->vertexList[j].input_value.size() << endl << " with input: ";
+/*					cout << graph->vertexList[j].Gate_name << " is under calculating..." << " with size: " << graph->vertexList[j].input_value.size() << endl << " with input: ";
 					for(int i = 0; i <= graph->vertexList[j].input_value.size() - 1; i++)
 					{
 						cout << graph->vertexList[j].input_value.at(i) << " ";
 					}
-					if( graph->vertexList[j].Gate_type == "from")
+*/					if( graph->vertexList[j].Gate_type == "from")
 					{
 						
 
 						EdgeNode *p = graph->vertexList[j].first[0];
 						graph->vertexList[j].value = graph->vertexList[j].input_value.at(0);
 						graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
-						cout <<  " with output =" << graph->vertexList[j].value << endl;
+//						cout <<  " with output =" << graph->vertexList[j].value << endl;
 //						cout << "------- and it has next gate: " << graph->vertexList[p->vtxNO].Gate_name << " with input_value = :";
 						for (int fan_index = 0; fan_index <= (graph->vertexList[p->vtxNO].input_value.size() - 1); fan_index++)
 						{
 							//cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
 						}
-						cout << endl;
+//						cout << endl;
 					}
 					else if(graph->vertexList[j].Gate_type == "and")
 					{
@@ -834,7 +837,7 @@ struct Graph
 							temp = temp & graph->vertexList[j].input_value[input_index];
 						}
 						graph->vertexList[j].value = ~temp;
-						cout <<  " with output =" << graph->vertexList[j].value << endl;
+//						cout <<  " with output =" << graph->vertexList[j].value << endl;
 
 						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
 						{
@@ -849,27 +852,20 @@ struct Graph
 				{
 
 					//cout << "fault is: " << graph->vertexList[j].Gate_name << " " << Fault_element.Fault << endl;
-					cout << graph->vertexList[j].Gate_name << " with level " << graph->vertexList[j].level << " and fault " << Fault_element.Fault << " is now injecting..." <<endl;	
-
+//					cout << graph->vertexList[j].Gate_name << " with level " << graph->vertexList[j].level << " and fault " << Fault_element.Fault << " is now injecting..." <<endl;	
 					if(Fault_element.Fault == "SA0")
 					{
-						cout << ".....SA0" <<endl;
+//						cout << ".....SA0" <<endl;
 						graph->vertexList[j].value = 0;
-						if( graph->vertexList[j].first[0] == NULL)
-						{
-							cout << "output from " << graph->vertexList[j].Gate_name << " is " << 1 << endl;
-						}
+
 						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
 						{
-							cout << " driven gate is being re-configurated..."<<endl;
+//							cout << " driven gate is being re-configurated..."<<endl;
 							EdgeNode *p = graph->vertexList[j].first[it];
 							graph->vertexList[p->vtxNO].input_value.push_back(0);
-							cout << " driven gate: " << graph->vertexList[p->vtxNO].Gate_name << " is CONFIGURATED, now it has input_value = ";
-							for (int i = 0; (i <= graph->vertexList[p->vtxNO].input_value.size() - 1); i++)
-							{
-								cout << graph->vertexList[p->vtxNO].input_value.at(i) << " ";
-							}
-							cout << endl;
+//							cout << " driven gate: " << graph->vertexList[p->vtxNO].Gate_name << " is CONFIGURATED, now it has input_value = ";
+
+//							cout << endl;
 
 							//cout << graph->vertexList[p->vtxNO].Gate_name << " has been initalized" << endl;
 						}
@@ -877,22 +873,16 @@ struct Graph
 					}
 					if(Fault_element.Fault == "SA1")
 					{
-						cout << ".....SA1" <<endl;
-						graph->vertexList[j].value = 4294967296;
-						if( graph->vertexList[j].first[0] == NULL)
-						{
-							cout << "output from " << graph->vertexList[j].Gate_name << " is " << 1 << endl;
-						}	
+//						cout << ".....SA1" <<endl;
+						graph->vertexList[j].value = 4294967295;
+	
 						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
 						{
 							EdgeNode *p = graph->vertexList[j].first[it];							
-							graph->vertexList[p->vtxNO].input_value.push_back(4294967296);
-							cout << " driven gate: " << graph->vertexList[p->vtxNO].Gate_name << " is CONFIGURATED, now it has input_value = ";
-							for (int i = 0; (i <= graph->vertexList[p->vtxNO].input_value.size() - 1); i++)
-							{
-								cout << graph->vertexList[p->vtxNO].input_value.at(i);
-							}
-							cout << endl;
+							graph->vertexList[p->vtxNO].input_value.push_back(4294967295);
+//							cout << " driven gate: " << graph->vertexList[p->vtxNO].Gate_name << " is CONFIGURATED, now it has input_value = ";
+
+//							cout << endl;
 
 							//cout << graph->vertexList[p->vtxNO].Gate_name << " has been initalized" << endl;
 
@@ -901,8 +891,27 @@ struct Graph
 					}
 				}
 
+				if((graph->vertexList[j].level == max_level) && (graph->vertexList[j].Gate_name == Fault_element.Gate_name))
+				{
+					if(Fault_element.Fault == "SA0")
+					{
+
+						graph->vertexList[j].value = 0;
+				//		cout << graph->vertexList[j].Gate_name << " is output, with value: " << graph->vertexList[j].value <<endl;
+
+					}
+					else if(Fault_element.Fault == "SA1")
+					{
+				//		cout <<"here"<<endl;
+						graph->vertexList[j].value = 4294967295;
+				//		cout << graph->vertexList[j].Gate_name << " is output, with value: " << graph->vertexList[j].value <<endl;
+
+
+					}
+				}
+
 			}
-		}*/
+		}
 	
 	}
 	
@@ -977,7 +986,7 @@ struct Graph
 		int Num_of_inpt = 0;
 
 		yyparse();
-
+		cout << endl;
 		cout <<"Data collect successfully!" <<endl;
 		//cout << "this is the total number of gate: " << gate_counter<<endl;
 		/*for(int j = 0; j<= gate_counter-1; j++)
@@ -986,10 +995,10 @@ struct Graph
 		}*/
 		for(int i = 0; i<=gate_counter; i++)
 		{
-			cout << i << endl;
-			cout<<gates[i].Gate_name<<" ";
-			cout<<gates[i].Gate_index<<" ";
-			cout<<gates[i].Gate_type<<endl;
+			//cout << i << endl;
+			//cout<<gates[i].Gate_name<<" ";
+			//cout<<gates[i].Gate_index<<" ";
+			//cout<<gates[i].Gate_type<<endl;
 		}
 		Graph *graph = NULL;
 		int start_index = 20001;
@@ -1002,13 +1011,13 @@ struct Graph
 		cout << "Graph is built!" << endl;
 		for(int i = 0; i<=gate_counter; i++)
 		{
-			cout << i << endl;
-			cout<<gates[i].Gate_name<<" ";
-			cout<<gates[i].Gate_index<<" ";
-			cout<<gates[i].Gate_type<<endl;
+			//cout << i << endl;
+			//cout<<gates[i].Gate_name<<" ";
+			//cout<<gates[i].Gate_index<<" ";
+			//cout<<gates[i].Gate_type<<endl;
 		}	
-		cout << "Vertex: " << graph->vertexes << "\n";
-		cout << "Edge: " << graph->edges << "\n";
+		//cout << "Vertex: " << graph->vertexes << "\n";
+		//cout << "Edge: " << graph->edges << "\n";
 		//PrintGraph(graph);
 		//now I need to carefully arrange edges
 
@@ -1030,10 +1039,10 @@ struct Graph
 
 			else if(gates[i].Gate_type != "inpt")  //现在找到了gate
 			{
-				cout << "the gate is: " << graph->vertexList[i].Gate_name << " with source index: " ;
+				//cout << "the gate is: " << graph->vertexList[i].Gate_name << " with source index: " ;
 				for (int k = 0; k <= gates[i].Fan_in_number-1 ; k++)
 				{
-					cout << graph->vertexList[i].Source_gate_index[k]<<endl;
+					//cout << graph->vertexList[i].Source_gate_index[k]<<endl;
 					for(int j = 0; j <= gate_counter; j++)
 					{
 						if(gates[j].Gate_index == gates[i].Source_gate_index[k])
@@ -1043,7 +1052,7 @@ struct Graph
 
 					}
 				}
-				cout << endl;
+				//cout << endl;
 			}
 		}
 
@@ -1056,23 +1065,23 @@ struct Graph
 		//cout<<"Here is the gates name, index and type:"<<endl;
 		for(int i = 0; i<=gate_counter; i++)
 		{
-			cout<<graph->vertexList[i].Gate_name<<" ";
-			cout<<graph->vertexList[i].Gate_index<<" ";
-			cout<<graph->vertexList[i].Gate_type<<endl;
+			//cout<<graph->vertexList[i].Gate_name<<" ";
+			//cout<<graph->vertexList[i].Gate_index<<" ";
+			//cout<<graph->vertexList[i].Gate_type<<endl;
 		}
 		cout << " -------------------------------------- " <<endl;
 		cout << "gate_counter = " << gate_counter << endl;
 		for(int i = 0; i<=gate_counter; i++)
 		{
-			cout << i << endl;
-			cout<<gates[i].Gate_name<<" ";
-			cout<<gates[i].Gate_index<<" ";
-			cout<<gates[i].Gate_type<<endl;
+			//cout << i << endl;
+			//cout<<gates[i].Gate_name<<" ";
+			//cout<<gates[i].Gate_index<<" ";
+			//cout<<gates[i].Gate_type<<endl;
 		}		
 
-		cout << "Vertex: " << graph->vertexes << "\n";
-		cout << "Edge: " << graph->edges << "\n";
-		cout << "Print Edge" << endl;
+		//cout << "Vertex: " << graph->vertexes << "\n";
+		//cout << "Edge: " << graph->edges << "\n";
+		//cout << "Print Edge" << endl;
 		PrintGraph(graph);
 
 
@@ -1110,11 +1119,32 @@ struct Graph
 			Fault_free_gate_container.push_back(Output_vector.at(i).value);
 			cout << Output_vector.at(i).Gate_name << " when fault free is: " << Output_vector.at(i).value <<endl;
 		}
-		result_generator(graph, gate_counter);
-		Output_vector.empty(); //清空Output_vector，以便放入新的fault_gate的output_vector
+		//result_generator(graph, gate_counter);
+		Output_vector.clear(); //清空Output_vector，以便放入新的fault_gate的output_vector
 		fault_collector(graph, gate_counter, Fault_vector);  //搜集所有的fault gate和他们的fault类型
 
-		process_fault(graph, gate_counter, test_pattern, Fault_vector[2]);
+		for(int i = 0; i <= Fault_vector.size() - 1; i++)
+		{
+			cout <<"................................................................." <<endl;
+			cout << "Fault: " << Fault_vector[i].Gate_name << " " << Fault_vector[i].Fault << " is processing..." <<endl;
+			process_fault(graph, gate_counter, test_pattern, Fault_vector[i]);
+			//result_generator(graph, gate_counter);
+			Output_vector.clear();
+			output_finder(graph, gate_counter, Output_vector);
+			for(int i = 0; i<= Output_vector.size() - 1; i++)
+			{
+				Fault_gate_container.push_back(Output_vector.at(i).value);
+				cout << Output_vector.at(i).Gate_name << " when fault is: " << Output_vector.at(i).value <<endl;
+			}
+			if(is_identical(Fault_free_gate_container, Fault_gate_container, Output_vector) == false)
+			{
+				cout << "Found!!!" <<endl;
+			}
+
+		}
+
+
+		//result_generator(graph, gate_counter);
 //		cout << "fault is: " << Fault_vector[0].Gate_name << " " << Fault_vector[2].Fault <<endl;
 //		output_finder(graph, gate_counter, Output_vector);
 //		result_generator(graph, gate_counter);
