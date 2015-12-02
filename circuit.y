@@ -660,19 +660,21 @@ struct Graph
 
 	void process_fault_free(Graph *graph, int size, vector<int> &test_pattern)
 	{
-		//cout << "Fault free circuit is under processing....." << endl;
+		cout << "Fault free circuit is under processing" << endl <<".....";
 		int test_pattern_index = 0;
 		int temp = 0;
 		int max_level = -1;
+		ofstream out;
+		out.open("ATPG.txt", std::ofstream::out|std::ofstream::app);
 		//initialize input
-		cout << "Input Pattern:" <<endl;
+		out << "Input Pattern:" <<endl;
 		for(int i = 0; i<=size; i++)
 		{
 			if(graph->vertexList[i].Gate_type == "inpt")
 			{
 				std::bitset<32> binary (test_pattern.at(test_pattern_index));
-				cout << "<" << graph->vertexList[i].Gate_index << ">";
-				cout << "[" << binary <<"]," <<endl;
+				out << "<" << graph->vertexList[i].Gate_index << ">";
+				out << "[" << binary <<"]," <<endl;
 				graph->vertexList[i].value = test_pattern.at(test_pattern_index);
 				for (int it = 0; it <= graph->vertexList[i].Fan_out_number - 1; it++)
 				{
@@ -690,6 +692,7 @@ struct Graph
 				test_pattern_index++;
 			}
 		}
+		cout << ".............";
 		//process
 
 		for(int k = 0; k <= size; k++)
@@ -893,7 +896,9 @@ struct Graph
 
 			}
 		}
-		//cout << "fault free circuit has been processed!" <<endl;
+		cout << ".......................!" << endl;
+
+		cout << "Fault free circuit has been processed!" <<endl;
 	}
 
 	void input_checker (Graph *graph, int size)
@@ -919,7 +924,7 @@ struct Graph
 
 	void process_fault(Graph *graph, int size, vector<int> &test_pattern, Fault_class Fault_element)
 	{
-		//cout << "Faulty circuit is under processing..." <<endl;
+//		cout << "Faulty circuit is under processing" << endl << "..." <<endl;
 //		cout << "Fault is: " << Fault_element.Gate_name << " " << Fault_element.Fault << " " <<endl;
 		int test_pattern_index = 0;
 		
@@ -960,6 +965,7 @@ struct Graph
 				test_pattern_index++;
 			}			
 		}
+//		cout << ".............";
 
 //		input_checker(graph, size);
 
@@ -1198,7 +1204,9 @@ struct Graph
 
 			}
 		}
-			//cout << "Faulty circuit has been processed..." <<endl;
+//			cout << ".......................!" << endl;
+
+//			cout << "Faulty circuit has been processed!" <<endl;
 
 	}
 	
@@ -1272,6 +1280,9 @@ struct Graph
 
 	void Following_faults_are_detected_at (Graph *graph, int size, vector<Gate_class> &Fault_free_gate_container, vector<Gate_class> &Fault_gate_container, vector<Gate_class> &Output_vector, Fault_class &Fault_element, bool is_identical)
 	{
+		ofstream out;
+		out.open("ATPG.txt", std::ofstream::out|std::ofstream::app);
+
 		//cout <<"here"<<endl;
 		if(is_identical == false)
 		{
@@ -1280,22 +1291,22 @@ struct Graph
 			{
 				if(Fault_free_gate_container.at(i).value != Fault_gate_container.at(i).value)
 				{
-					cout << "<" << Output_vector.at(i).Gate_index << ">";
+					out << "<" << Output_vector.at(i).Gate_index << ">";
 					for(int j = 0; j <= size; j++)
 					{
 						if(graph->vertexList[j].Gate_name == Fault_element.Gate_name)
 						{
-						cout << "<" << graph->vertexList[j].Gate_index << ">";	
+						out << "<" << graph->vertexList[j].Gate_index << ">";	
 						break;						
 						}
 					}
 					if(Fault_element.Fault == "SA1")
 					{
-						cout << "SA<1>" <<endl;
+						out << "SA<1>" <<endl;
 					}
 					else if(Fault_element.Fault == "SA0")
 					{
-						cout << "SA<0>" <<endl;
+						out << "SA<0>" <<endl;
 					}
 					break;
 				}
@@ -1329,22 +1340,13 @@ struct Graph
 	int main(void){
 
 		int Num_of_inpt = 0;
+		ofstream out;
+		out.open("ATPG.txt", std::ofstream::out|std::ofstream::app);
 
 		yyparse();
 		cout << endl;
 		cout <<"Data collect successfully!" <<endl;
-		//cout << "this is the total number of gate: " << gate_counter<<endl;
-		/*for(int j = 0; j<= gate_counter-1; j++)
-		{
-			cout<<gates[j].Gate_index << " " << gates[j].Gate_name << " " << gates[j].Gate_type << " " <<endl; 
-		}*/
-		for(int i = 0; i<=gate_counter; i++)
-		{
-			//cout << i << endl;
-			//cout<<gates[i].Gate_name<<" ";
-			//cout<<gates[i].Gate_index<<" ";
-			//cout<<gates[i].Gate_type<<endl;
-		}
+
 		Graph *graph = NULL;
 		int start_index = 20001;
 		//InsertSort(gates, gate_counter);
@@ -1354,17 +1356,7 @@ struct Graph
 		cout << "Data is cleaned up!" << endl;
 		BuildGraph(graph, gate_counter+1);
 		cout << "Graph is built!" << endl;
-		for(int i = 0; i<=gate_counter; i++)
-		{
-			//cout << i << endl;
-			//cout<<gates[i].Gate_name<<" ";
-			//cout<<gates[i].Gate_index<<" ";
-			//cout<<gates[i].Gate_type<<endl;
-		}	
-		//cout << "Vertex: " << graph->vertexes << "\n";
-		//cout << "Edge: " << graph->edges << "\n";
-		//PrintGraph(graph);
-		//now I need to carefully arrange edges
+
 
 	
 		for(int i = 0; i <= gate_counter; i++)
@@ -1402,8 +1394,8 @@ struct Graph
 		}
 
 
-		//cout <<"Edgeds are added" << endl;
-
+		cout <<"Edgeds are added" << endl;
+		cout << " -------------------------------------- " <<endl;
 		//cout<<"here";
 		//Add_PO(graph);
 		//cout << "PO is added" <<endl;
@@ -1415,7 +1407,6 @@ struct Graph
 			//cout<<graph->vertexList[i].Gate_type<<endl;
 		}
 		cout << " -------------------------------------- " <<endl;
-		cout << "gate_counter = " << gate_counter << endl;
 		for(int i = 0; i<=gate_counter; i++)
 		{
 			//cout << i << endl;
@@ -1454,6 +1445,8 @@ struct Graph
 		}
 		
 		test_pattern_generator(test_pattern, Num_of_inpt);
+		cout << "Random test pattern generated" <<endl;
+		cout << "--------------------------------------" << endl;
 		/*
 		for (int i = 0; i<=test_pattern.size() - 1; i++)
 		{
@@ -1471,7 +1464,8 @@ struct Graph
 		//result_generator(graph, gate_counter);
 		Output_vector.clear(); //清空Output_vector，以便放入新的fault_gate的output_vector
 		fault_collector(graph, gate_counter, Fault_vector);  //搜集所有的fault gate和他们的fault类型
-		cout << "Following faults are detected at:" << endl;
+		out << "Following faults are detected at:" << endl;
+		cout <<"Faulty circuit is under processing" << endl <<".........................................!" <<endl;
 		for(int i = 0; i <= Fault_vector.size() - 1; i++)
 		{
 			//cout <<"................................................................." <<endl;
@@ -1494,8 +1488,13 @@ struct Graph
 			Fault_gate_container.clear();
 
 		}
-
-
+		cout << "Faulty circuit has been processed!" <<endl;
+		cout << "Result has been generated!!!" << endl;
+		cout << endl;
+		cout << endl;
+		cout << endl;
+		cout << endl;
+		cout <<" THANK YOU FOR USING!!!" << endl;
 
 
 
