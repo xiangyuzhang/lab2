@@ -651,6 +651,7 @@ struct Graph
 		for(int i = 0;i<=Num_inpt - 1;i++)
 		{
 			unsigned int temp = random_generator();
+	//		unsigned int temp = 0;
 	//		cout << "here" <<endl;
 			vect.push_back(temp);
 			//cout << " test pattern: " << temp <<endl;
