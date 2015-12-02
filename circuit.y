@@ -621,7 +621,7 @@ struct Graph
 
 	void process_fault_free(Graph *graph, int size, vector<int> &test_pattern)
 	{
-//		cout << "Fault free circuit is under processing....." << endl;
+		cout << "Fault free circuit is under processing....." << endl;
 		int test_pattern_index = 0;
 		int temp = 0;
 		int max_level = -1;
@@ -660,10 +660,10 @@ struct Graph
 				max_level = graph->vertexList[k].level;
 			}
 		}
-//		cout << "Max level is: " << max_level <<endl;
+		cout << "Max level is: " << max_level <<endl;
 		for(int level = 1; level <= max_level; level++)
 		{
-//			cout << endl <<"Current level is: " << level <<endl;
+			cout << endl <<"Current level is: " << level <<endl;
 			for(int j = 0; j<=size; j++)
 			{
 				
@@ -682,21 +682,21 @@ struct Graph
 //						cout << "here" <<endl;
 						graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
 
-//						cout << " FAN: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << " FAN: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << " and output: " << graph->vertexList[j].value <<endl;
 						//------------------------------------------------------------------------------------------------------------------------------------
 
 
-//						cout << "------- and it has next gate: " << graph->vertexList[p->vtxNO].Gate_name << " with input_value = :";
+						cout << "------- and it has next gate: " << graph->vertexList[p->vtxNO].Gate_name << " with input_value = :";
 						for (int fan_index = 0; fan_index <= (graph->vertexList[p->vtxNO].input_value.size() - 1); fan_index++)
 						{
-//							cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
+							cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
 						}
-//						cout << endl;
+						cout << endl;
 					}
 					else if(graph->vertexList[j].Gate_type == "and")
 					{
@@ -714,17 +714,40 @@ struct Graph
 						}
 
 
-//						cout << " AND: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << " AND: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << " and output: " << graph->vertexList[j].value <<endl;
 						//------------------------------------------------------------------------------------------------------------------------------------
 
+					}
+
+					else if(graph->vertexList[j].Gate_type == "or")
+					{
+						temp = graph->vertexList[j].input_value[0];
+						for(int input_index = 1; input_index <= graph->vertexList[j].Fan_in_number - 1; input_index++)
+						{
+							temp = temp | graph->vertexList[j].input_value[input_index];
+						}
+						graph->vertexList[j].value = temp;
+						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
+						{
+							EdgeNode *p = graph->vertexList[j].first[it];
+							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
+						}
 
 
+						cout << " NOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
+						{
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+						}
+						cout << " and output: " << graph->vertexList[j].value <<endl;
+						//------------------------------------------------------------------------------------------------------------------------------------
 
+						
 					}
 					else if(graph->vertexList[j].Gate_type == "nand")
 					{
@@ -741,12 +764,12 @@ struct Graph
 							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
 						}						
 
-//						cout << " NAND: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << " NAND: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << " and output: " << graph->vertexList[j].value <<endl;
 						//------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -757,22 +780,22 @@ struct Graph
 
 
 						graph->vertexList[j].value = ~(graph->vertexList[j].input_value.at(0));	
-//						cout << endl;
-//						cout << " NOT: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << endl;
+						cout << " NOT: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
-//						cout << "------with next gate:";
+						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << "------with next gate:";
 						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
 						{
 							EdgeNode *p = graph->vertexList[j].first[it];
-//							cout << graph->vertexList[p->vtxNO].Gate_name << " ";
+							cout << graph->vertexList[p->vtxNO].Gate_name << " ";
 							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
-//							cout << graph->vertexList[p->vtxNO].input_value.at(it) << "   ";
+							cout << graph->vertexList[p->vtxNO].input_value.at(it) << "   ";
 						}	
-//						cout << endl;					
+						cout << endl;					
 						//------------------------------------------------------------------------------------------------------------------------------------
 
 //						cout << endl;						
@@ -792,12 +815,12 @@ struct Graph
 							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
 						}	
 
-//						cout << " NOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << " NOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << " and output: " << graph->vertexList[j].value <<endl;
 						//------------------------------------------------------------------------------------------------------------------------------------
 
 					}
@@ -816,12 +839,12 @@ struct Graph
 							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
 						}
 
-//						cout << " XOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						cout << " XOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
 						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
 						{
-//							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
 						}
-//						cout << " and output: " << graph->vertexList[j].value <<endl;
+						cout << " and output: " << graph->vertexList[j].value <<endl;
 						//------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -831,7 +854,7 @@ struct Graph
 
 			}
 		}
-//		cout << "fault free circuit has been processed!" <<endl;
+		cout << "fault free circuit has been processed!" <<endl;
 	}
 
 	void input_checker (Graph *graph, int size)
@@ -939,6 +962,31 @@ struct Graph
 							//cout << graph->vertexList[p->vtxNO].input_value.at(fan_index) << "   ";
 						}
 //						cout << endl;
+					}
+					else if(graph->vertexList[j].Gate_type == "or")
+					{
+						temp = graph->vertexList[j].input_value[0];
+						for(int input_index = 1; input_index <= graph->vertexList[j].Fan_in_number - 1; input_index++)
+						{
+							temp = temp | graph->vertexList[j].input_value[input_index];
+						}
+						graph->vertexList[j].value = temp;
+						for (int it = 0; it <= graph->vertexList[j].Fan_out_number - 1; it++)
+						{
+							EdgeNode *p = graph->vertexList[j].first[it];
+							graph->vertexList[p->vtxNO].input_value.push_back(graph->vertexList[j].value);
+						}
+
+
+						cout << " NOR: " <<graph->vertexList[j].Gate_name << " has input value = ";
+						for(int test_for_input = 0; test_for_input <= graph->vertexList[j].input_value.size() - 1; test_for_input++)
+						{
+							cout << graph->vertexList[j].input_value.at(test_for_input) << " ";
+						}
+						cout << " and output: " << graph->vertexList[j].value <<endl;
+						//------------------------------------------------------------------------------------------------------------------------------------
+
+						
 					}
 					else if(graph->vertexList[j].Gate_type == "and")
 					{
@@ -1349,7 +1397,7 @@ struct Graph
 		init_levelization(graph, gate_counter);
 
 		levelization(graph, gate_counter);
-//		level_checker(graph, gate_counter);
+		level_checker(graph, gate_counter);
 		for(int i = 0; i <= gate_counter; i++)
 		{
 			//cout << graph->vertexList[i].Gate_name << " has level = " << graph->vertexList[i].level << endl;
